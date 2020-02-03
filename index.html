@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Vue项目</title>
+    <link rel="stylesheet" href="./src/lib/mui.min.css">
+    <link rel="stylesheet" href="./src/lib/icons-extra.css">
+    
+    <style>
+        body{
+            background-color: white;
+        }
+        html,h1,h2,body,div,li,ul,a{
+            margin: 0;
+            padding: 0;
+        }
+        .header{
+            height: 50px;
+            width: 100%;
+            background-color:  #4848e5;
+            position: fixed;
+            top: 0;
+            font-size: 30px;
+            font-weight: 700;
+            line-height: 50px;
+            text-align: center;
+        }
+        #app {
+            margin-top: 50px;
+            overflow: hidden;
+        }
+        .mui-grid-view.mui-grid-9{
+            background-color: #fff;
+            border: 0;
+        }
+        .mui-grid-view.mui-grid-9 .mui-media {
+            border : none;
+        }
+        ul img {
+            width: 60px;
+            height: 60px;
+        }
+        .v-enter {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        .v-leave-to {
+            opacity: 0;
+            transform: translateX(-100%);
+            position: absolute;
+        }
+        .v-enter-active,
+        .v-leave-active {
+            transition: all 0.5s ease;
+        }
+
+
+  
+    </style>
+   
+    <script src="./src/lib/vue.js"></script>
+    <script src="./src/lib/vue-router.js"></script>
+
+    
+</head>
+<body>
+    <div id="app">
+        <app></app>
+        <transition>
+        <router-view></router-view>
+        </transition>
+        <nav class="mui-bar mui-bar-tab">
+			<router-link class="mui-tab-item " to="/home">
+				<span class="mui-icon mui-icon-home"></span>
+				<span class="mui-tab-label">首页</span>
+			</router-link>
+			<router-link class="mui-tab-item" to="/member">
+				<span class="mui-icon mui-icon-contact mui-icon-icon-contact-filled"></span>
+				<span class="mui-tab-label">会员</span>
+			</router-link>
+			<router-link class="mui-tab-item"  to='/showcar'>
+				<span class="mui-icon mui-icon-extra mui-icon-extra-cart"><span class="mui-badge">9</span></span>
+				<span class="mui-tab-label">购物车</span>
+			</router-link>
+			<router-link class="mui-tab-item" to="/search">
+				<span class="mui-icon mui-icon-search"></span>
+				<span class="mui-tab-label">搜索</span>
+			</router-link>
+		</nav>
+    </div>  
+   <script>
+       
+var home={
+    template: '<div>\
+<div id="slider" class="mui-slider" >\
+    <div class="mui-slider-group mui-slider-loop">\
+        <div class="mui-slider-item mui-slider-item-duplicate">\
+            <a href="#">\
+                <img src="./src/img/yuantiao.jpg">\
+            </a>\
+        </div>\
+        <div class="mui-slider-item">\
+            <a href="#">\
+                <img src="./src/img/shuijiao.jpg">\
+            </a>\
+        </div>\
+        <!-- 第二张 -->\
+        <div class="mui-slider-item">\
+            <a href="#">\
+                <img src="./src/img/muwu.jpg">\
+            </a>\
+        </div>\
+        <!-- 第三张 -->\
+        <div class="mui-slider-item">\
+            <a href="#">\
+                <img src="./src/img/cbd.jpg">\
+            </a>\
+        </div>\
+        <!-- 第四张 -->\
+        <div class="mui-slider-item">\
+            <a href="#">\
+                <img src="./src/img/yuantiao.jpg">\
+            </a>\
+        </div>\
+        <!-- 额外增加的一个节点(循环轮播：最后一个节点是第一张轮播) -->\
+        <div class="mui-slider-item mui-slider-item-duplicate">\
+            <a href="#">\
+                <img src="./src/img/shuijiao.jpg">\
+            </a>\
+        </div>\
+    </div>\
+    <div class="mui-slider-indicator">\
+        <div class="mui-indicator mui-active"></div>\
+        <div class="mui-indicator"></div>\
+        <div class="mui-indicator"></div>\
+        <div class="mui-indicator"></div>\
+    </div>\
+</div>\
+<ul class="mui-table-view mui-grid-view mui-grid-9">\
+            <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><a href="#">\
+                    <img src="./src/img/menu1.png" alt="">\
+                    <div class="mui-media-body">新闻资讯</div></a></li>\
+            <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><a href="#">\
+                    <img src="./src/img/menu2.png" alt="">\
+                    <div class="mui-media-body">图片分享</div></a></li>\
+            <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><a href="#">\
+                    <img src="./src/img/menu3.png" alt="">\
+                    <div class="mui-media-body">商品购买</div></a></li>\
+            <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><a href="#">\
+                    <img src="./src/img/menu4.png" alt="">\
+                    <div class="mui-media-body">留言反馈</div></a></li>\
+            <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><a href="#">\
+                    <img src="./src/img/menu5.png" alt="">\
+                    <div class="mui-media-body">视频专区</div></a></li>\
+            <li class="mui-table-view-cell mui-media mui-col-xs-4 mui-col-sm-3"><a href="#">\
+                    <img src="./src/img/menu6.png" alt="">\
+                    <div class="mui-media-body">联系我们</div></a></li>\
+        </ul> \
+</div>'
+}
+var member={
+    template: '<h1>member</h1>'
+}
+var showcar={
+    template: '<h1>showcar</h1>'
+}
+var search={
+    template: '<h1>search</h1>'
+}
+Vue.component('app',{
+    template: '<div class="header">Vue商城项目</div>'
+})
+var routerobj=new VueRouter({
+routes: [
+{path:'/',redirect:'./home'},
+{path:'/home',component: home},
+{path:'/member',component: member},
+{path:'/showcar',component: showcar},
+{path:'/search',component: search}
+],
+linkActiveClass: 'mui-active'
+})
+
+Vue.component('com',{
+template: ''
+})
+var vm = new Vue({
+el: '#app',
+router: routerobj
+})
+var slider = mui("#slider");
+slider.slider({
+interval: 5000
+});
+
+
+   </script>
+</body>
+</html>
