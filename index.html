@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="./src/lib/icons-extra.css">
     
     <style>
+        a{
+            text-decoration: none!important;
+        }
         body{
             background-color: white;
         }
@@ -31,6 +34,12 @@
             font-weight: 500;
             line-height: 36px;
             text-align: center;
+        }
+        .header .back {
+            float: left;
+            padding:  0 10px;
+            font-size: 30px;
+            color: white;
         }
         #app {
             margin-top: 36px;
@@ -203,6 +212,53 @@
             border-color: orangered;
             color: orangered;
         }
+        .ball {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background-color: red;
+            position: absolute;
+            z-index: 111;
+            left: 140px;
+            top: 430px;
+        }
+        .showcar-container {
+            background-color: #eee;
+            overflow: hidden;
+        }
+        .showcar-container img{
+            width: 18%;
+            margin: 0 15px;
+        }
+        .showcar-container .mui-card-content .mui-card-content-inner{
+            display: flex;
+            align-items: center;
+           
+        }
+        
+        .showcar-container .price {
+            color: red;
+            font-weight: 600;
+        }
+        .jiesuan {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 20px;
+          
+           
+        }
+        .jiesuan .left p{
+            font-size: 16px;
+        }
+        .jiesuan .total{
+            color: red;
+            font-weight: bold;
+        }
+        .jiesuan button {
+            background-color: orangered;
+        }
+        
         
     </style>
       <link rel="stylesheet" href="./src/lib/bootstrap.css">
@@ -212,6 +268,7 @@
       <script src="./src/lib/vue-router.js"></script>
       <script src="./src/lib/vue-resource-1.3.4.js"></script> 
       <script src="./src/lib/moment.js"></script> 
+      <script src="./src/lib/vuex.js"></script>
      
       
 </head>
@@ -235,7 +292,8 @@
 				<span class="mui-tab-label">会员</span>
 			</router-link>
 			<router-link class="mui-tab-item"  to='/showcar'>
-				<span class="mui-icon mui-icon-extra mui-icon-extra-cart"><span class="mui-badge">9</span></span>
+				<span class="mui-icon mui-icon-extra mui-icon-extra-cart">
+                <span class="mui-badge" id="badge">{{$store.getters.getAllCount}}</span></span>
 				<span class="mui-tab-label">购物车</span>
 			</router-link>
 			<router-link class="mui-tab-item" to="/search">
@@ -400,6 +458,13 @@
     </div>
     </template>
     <template id="goodsinfo">
+      <div>
+         <transition
+         @before-enter="beforeEnter"
+         @enter="enter"
+         @after-enter="afterEnter"
+         ><div class="ball" ref="ball" v-show="ballFlag"></div></transition
+            >
       <div class="goods-container">
         <div class="mui-card">
             <div class="mui-card-content">
@@ -416,17 +481,10 @@
                       市场价： <del>￥{{goodsinfo.market_price}}</del>
                       销售价： <span class="now_price">￥{{goodsinfo.sell_price}}</span>
                     </p>
-                    <div>
-                        <span>购买数量: </span>
-                        <div class="mui-numbox" data-numbox-min='1' data-numbox-max='9'>
-                            <button class="mui-btn mui-btn-numbox-minus" type="button">-</button>
-                            <input id="test" class="mui-input-numbox" type="number" value="0" />
-                            <button class="mui-btn mui-btn-numbox-plus" type="button">+</button>
-                        </div>
-                    </div>
+                    <p>购买数量: <numbox @getcount = "getSelectedCount" :max= "goodsinfo.stock_quantity"></numbox></p>
                     <p class="button">
                         <button>立即购买</button>
-                        <button>加入购物车</button>
+                        <button @click="addToShopCar" @click="">加入购物车</button>
                     </p>
                 </div>
             </div>
@@ -448,7 +506,7 @@
             </div>
         </div>
         
-        
+      </div>
       </div>
     </template>
     <template id="goodsimg">
@@ -482,6 +540,60 @@
             <comment :id= id></comment>
         </div>
     </template>
+    <template id="numbox">
+        <div class="mui-numbox" data-numbox-min='1' data-numbox-max='9'>
+            <button class="mui-btn mui-btn-numbox-minus" type="button" @click="sub">-</button>
+            <input readonly id="test" class="mui-input-numbox" type="number" value= 1 @change="countChanged" ref="numbox"/>
+            <button class="mui-btn mui-btn-numbox-plus" type="button" @click="add">+</button>
+        </div>
+    </template>
+    <template id="numbox2">
+        <div class="mui-numbox" data-numbox-min='1' data-numbox-max='9'>
+            <button class="mui-btn mui-btn-numbox-minus" type="button" @click="sub">-</button>
+            <input  readonly id="test" class="mui-input-numbox" type="number" :value="initvalue" @change = "countChanged"  ref="numbox"/>
+            <button class="mui-btn mui-btn-numbox-plus" type="button" @click="add">+</button>
+        </div>
+    </template>
+    <template id="showcar">
+        <div class="showcar-container">
+         
+          <div class="mui-card" v-for="(item,i) in goodslist" :key="item.id">
+             <div class="mui-card-content">
+
+                 <div class="mui-card-content-inner">
+                   <input type="checkbox"  name="" id="" v-model="$store.getters.getGoodsSelected[item.id]" :checked="$store.getters.getGoodsSelected[item.id]"  @click = "selectedChanged(item.id,!$store.getters.getGoodsSelected[item.id])">
+    
+                  <img :src="item.img" alt="">
+                  <div class="info">
+                      <h4>{{item.title}}</h4>
+
+
+                      <p>
+                          <span class="price">￥{{item.sell_price}}</span>
+                          <numbox2 :initvalue = "$store.getters.getGoodsCount[item.id]" :goodid="item.id"></numbox2>
+                          <a href="#" @click.prevent="remove(item.id,i)">删除</a>
+                      </p>
+                  </div>
+                 </div>
+             </div>
+          </div>
+          <!-- 结算区域 -->
+          <div class="mui-card">
+            <div class="mui-card-content">
+                <div class="mui-card-content-inner jiesuan" >
+                    <div class="left">
+                        <p>总计（不含运费）</p>
+                        <p>已勾选商品<span class="total">{{$store.getters.getGoodsCountAndAmount.count}}</span>件，
+                            总价<span class="total">￥{{$store.getters.getGoodsCountAndAmount.amount}}</span>
+                        </p>
+                    </div>
+                    <button>去结算</button>
+                </div>
+               
+            </div>
+         </div>
+        </div>
+    </template>
    <script>
 Vue.filter('dateFormat',function(dataStr,pattern = 'YYYY-MM-DD HH:mm:ss'){
  return moment(dataStr).format(pattern);
@@ -510,14 +622,64 @@ var member={
     template: '<h1>member</h1>'
 }
 var showcar={
-    template: '<h1>showcar</h1>'
+    template: '#showcar',
+    data(){
+        return {
+            goodslist: []
+        }
+    },
+    created(){
+        this.getGoodsList()
+    },
+    methods: { 
+        getGoodsList(){
+        var idArr = [];
+        this.$store.state.car.forEach(item=>idArr.push(item.id));
+        if(idArr.length<1){
+        return;
+            }
+        this.$http.get('./src/data/car'+idArr.join(',')+'.json').then(result=>{
+            this.goodslist = result.body
+            
+        })
+        },
+        remove(id,i){
+            this.goodslist.splice(i,1);
+            this.$store.commit('removeCar',id)
+        },
+        selectedChanged(id,selected){
+            this.$store.commit('updatGoodsSelected',{id:id,selected:selected});
+        }
+
+    }
 }
 var search={
     template: '<h1>search</h1>'
 }
 Vue.component('app',{
-    template: '<div><div class="header">Vue商城项目</div></div>'
-    
+    template: '<div><div class="header"><span class="back" @click="goBack" v-show="flag"><</span>Vue商城项目</div></div>',
+    data(){
+       return {
+           flag: false
+       }
+    },
+    created(){
+          this.flag = this.$route.path ==="/home"?false:true
+    },
+    methods: {
+        goBack(){
+            this.$router.go(-1)
+        }
+    },
+    watch: {
+        "$route.path": function(newVal){
+            if(newVal == "/home"){
+                this.flag = false;
+            }else{
+                this.flag = true
+            }
+        }
+    }
 })
 Vue.component('footershow',{
     template: '#footershow'
@@ -639,7 +801,6 @@ var goodslist = {
         getgoodlist(){
             this.$http.get('./src/data/goodslist'+this.page+'.json').then(result=>{
              this.goodslist = this.goodslist.concat(result.body)
-           
              
             })
         },
@@ -662,7 +823,9 @@ var goodsinfo = {
     data: function(){
         return {
             id: this.$route.params.id,
-            goodsinfo : {}
+            goodsinfo : {},
+            ballFlag: false,
+            selectedCount: 1
         }
     },
     components: {
@@ -672,6 +835,8 @@ var goodsinfo = {
        this.getGoodsInfo()
     },
     methods: {
+       
+       
         getGoodsInfo(){
             this.$http.get('./src/data/getinfo'+ this.id + '.json').then(result =>{
                 this.goodsinfo = result.body
@@ -682,6 +847,39 @@ var goodsinfo = {
         },
         goComment(id){
             this.$router.push({name:'goodscomment',params: {id}})
+        },
+        addToShopCar(){
+          this.ballFlag = !this.ballFlag;
+          var goodsinfo = {
+              id: this.id,
+              count: this.selectedCount,
+              price: this.goodsinfo.sell_price,
+              selected: true
+            }
+            this.$store.commit("addToCar",goodsinfo)
+        },
+        
+        beforeEnter(el){
+              el.style.transform = "translate(0,0)";
+             
+        },
+        enter(el,done){
+              el.offsetWidth;
+              const ballPosition = this.$refs.ball.getBoundingClientRect();
+              const badgePosition = document.getElementById('badge').getBoundingClientRect();
+              const x = badgePosition.left - ballPosition.left;
+              const y = badgePosition.top - ballPosition.top;
+              el.style.transform = `translate(${x}px, ${y}px)`;
+              el.style.transition = 'all 2s ease';
+              done();
+              
+        },
+        afterEnter(el){
+               this.ballFlag = !this.ballFlag;
+        },
+        getSelectedCount(count){
+              this.selectedCount = count;
+             
         }
       
     }
@@ -720,6 +918,47 @@ var goodscomment = {
        }
     }
 }
+Vue.component('numbox',{
+    template: '#numbox',
+    methods: {
+        add(){
+            if(this.$refs.numbox.value> (this.max-1)) return;
+            this.$refs.numbox.value++;
+            this.countChanged();
+            
+        },
+        sub(){
+            if(this.$refs.numbox.value<2) return;
+            this.$refs.numbox.value--;
+            this.countChanged();
+        },
+        countChanged(){
+            this.$emit("getcount",parseInt(this.$refs.numbox.value));
+        },
+       
+    },
+    props: ["max"]
+})
+Vue.component('numbox2',{
+    template: '#numbox2',
+    methods: {
+        add(){
+           
+            this.$refs.numbox.value++;
+            this.countChanged();
+            
+        },
+        sub(){
+            if(this.$refs.numbox.value<2) return;
+            this.$refs.numbox.value--;
+            this.countChanged();
+        },
+        countChanged(){
+            this.$store.commit('updateGoodsInfo',{id: this.goodid,count: this.$refs.numbox.value})
+        }
+    },
+    props: ['initvalue',"goodid"]
+})
 
 
 
@@ -742,14 +981,108 @@ linkActiveClass: 'mui-active'
 })
 
 
+Vue.use(Vuex)
+var car =JSON.parse(localStorage.getItem('car')||'[]')
+var store = new Vuex.Store({
+    state: {
+       car : car//将购物车的商品的数据，用一个数组存储起来{id:商品的id,count:数量，price:价格，selected： false}
+    },
+    mutations: {
+        addToCar(state,goodsinfo) {
+           var flag = false
+           state.car.some(item=>{
+               if(item.id == goodsinfo.id){
+                   item.count += parseInt(goodsinfo.count)
+                   flag = true 
+                   return true
+               }
+           })
+           if(!flag){
+               state.car.push(goodsinfo)
+           }
+           localStorage.setItem('car',JSON.stringify(state.car))
+           
+        },
+        updateGoodsInfo(state,goodsinfo){
+               state.car.some(item=>{
+                   if(item.id == goodsinfo.id){
+                       item.count=parseInt(goodsinfo.count);
+                       return true
+                   }
+               })
+               localStorage.setItem('car',JSON.stringify(state.car))
+           },
+           removeCar(state,id){
+               state.car.some((item,i)=>{
+                   if(item.id==id){
+                       state.car.splice(i,1)
+                       return true
+                   }
+               })
+               localStorage.setItem('car',JSON.stringify(state.car))
+           },
+           
+          updatGoodsSelected(state,info){
+              var o ={}
+              state.car.forEach(item=>{
+                  if(item.id==info.id){
+                     item.selected = info.selected
+                  }  
+              })
+              localStorage.setItem('car',JSON.stringify(state.car))
+          }
+    },
+    getters: {
+           getAllCount(state){
+               var c = 0;
+               state.car.forEach(item=>{
+                   c +=item.count
+               })
+               return c
+           },
+          
+           getGoodsCount(state){
+               var o ={}
+               state.car.forEach(item => {
 
+               o[item.id] = item.count
+              })
+             return o
+          },
+          getGoodsSelected(state){
+              var o = {}
+              state.car.forEach(item => {
+                  o[item.id] = item.selected
+              })
+              return o
+          },
+          getGoodsCountAndAmount(state){
+              var o = {
+               count: 0,
+               amount: 0
+              }
+              
+              state.car.forEach(item=>{
+                  if(item.selected) {
+                      o.count += item.count
+                      o.amount += item.price*item.count
+                  }
+              })
+              return o
+          }
+          
+    }
+   
+});
 
 var vm = new Vue({
 el: '#app',
 
-router: routerobj
+router: routerobj,
+store
 })
+   
    </script>
-  
+
 </body>
 </html>
